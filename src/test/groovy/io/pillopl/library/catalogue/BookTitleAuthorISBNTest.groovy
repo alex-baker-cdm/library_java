@@ -67,6 +67,34 @@ class BookTitleAuthorISBNTest extends Specification {
         then:
             thrown(IllegalArgumentException)
     }
+
+    def "isbn-13 should be accepted"() {
+        when:
+            ISBN isbn = new ISBN("9780321125217")
+        then:
+            isbn.isbn == "9780321125217"
+    }
+
+    def "isbn-13 should be trimmed"() {
+        when:
+            ISBN isbn = new ISBN("  9780321125217  ")
+        then:
+            isbn.isbn == "9780321125217"
+    }
+
+    def "isbn with 11 digits should not be accepted"() {
+        when:
+            new ISBN("12345678901")
+        then:
+            thrown(IllegalArgumentException)
+    }
+
+    def "isbn with 12 digits should not be accepted"() {
+        when:
+            new ISBN("123456789012")
+        then:
+            thrown(IllegalArgumentException)
+    }
 }
 
 
