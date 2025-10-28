@@ -125,7 +125,7 @@ class BookDatabaseRepository implements BookRepository, FindAvailableBook, FindB
                         "checked_out_at_branch, " +
                         "checked_out_by_patron, " +
                         "version) VALUES " +
-                        "(book_database_entity_seq.nextval, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)",
+                        "(NEXT VALUE FOR book_database_entity_seq, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)",
                 bookId.getBookId(), bookType.toString(), state.toString(), availableAt, onHoldAt, onHoldBy, onHoldTill, checkedOutAt, checkedOutBy);
     }
 

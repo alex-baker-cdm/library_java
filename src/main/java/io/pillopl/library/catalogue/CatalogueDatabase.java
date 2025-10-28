@@ -18,7 +18,7 @@ class CatalogueDatabase {
         jdbcTemplate.update("" +
                         "INSERT INTO catalogue_book " +
                         "(id, isbn, title, author) VALUES " +
-                        "(catalogue_book_seq.nextval, ?, ?, ?)",
+                        "(NEXT VALUE FOR catalogue_book_seq, ?, ?, ?)",
                 book.getBookIsbn().getIsbn(), book.getTitle().getTitle(), book.getAuthor().getName());
         return book;
     }
@@ -27,7 +27,7 @@ class CatalogueDatabase {
         jdbcTemplate.update("" +
                         "INSERT INTO catalogue_book_instance " +
                         "(id, isbn, book_id) VALUES " +
-                        "(catalogue_book_instance_seq.nextval, ?, ?)",
+                        "(NEXT VALUE FOR catalogue_book_instance_seq, ?, ?)",
                 bookInstance.getBookIsbn().getIsbn(), bookInstance.getBookId().getBookId());
         return bookInstance;
     }

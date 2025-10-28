@@ -99,7 +99,7 @@ class SheetsReadModel implements DailySheet {
     private void createNewHold(BookPlacedOnHold event) {
         sheets.update("INSERT INTO holds_sheet " +
                         "(id, book_id, status, hold_event_id, hold_by_patron_id, hold_at, hold_till, expired_at, canceled_at, hold_at_branch, checked_out_at) VALUES " +
-                        "(holds_sheet_seq.nextval, ?, ?, ?, ?, ?, ?, null, null, ?, null)",
+                        "(NEXT VALUE FOR holds_sheet_seq, ?, ?, ?, ?, ?, ?, null, null, ?, null)",
                 event.getBookId(),
                 "ACTIVE",
                 event.getEventId(),
@@ -140,7 +140,7 @@ class SheetsReadModel implements DailySheet {
     private void createNewCheckout(BookCheckedOut event) {
         sheets.update("INSERT INTO checkouts_sheet " +
                         "(id, book_id, status, checkout_event_id, checked_out_by_patron_id, checked_out_at, checkout_till, checked_out_at_branch, returned_at) VALUES " +
-                        "(checkouts_sheet_seq.nextval, ?, ?, ?, ?, ?, ?, ?, null)",
+                        "(NEXT VALUE FOR checkouts_sheet_seq, ?, ?, ?, ?, ?, ?, ?, null)",
                 event.getBookId(),
                 "CHECKEDOUT",
                 event.getEventId(),
@@ -174,7 +174,7 @@ class SheetsReadModel implements DailySheet {
     private void insertAsReturnedWithCheckedOutEventMissing(BookReturned event) {
         sheets.update("INSERT INTO checkouts_sheet " +
                         "(id, book_id, status, checkout_event_id, checked_out_by_patron_id, checked_out_at, checked_out_till, returned_at) VALUES " +
-                        "(checkouts_sheet_seq.nextval, ?, ?, ?, ?, null, null, ?)",
+                        "(NEXT VALUE FOR checkouts_sheet_seq, ?, ?, ?, ?, null, null, ?)",
                 event.getBookId(),
                 "CHECKEDOUT",
                 event.getEventId(),
