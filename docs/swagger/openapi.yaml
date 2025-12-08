@@ -1,0 +1,488 @@
+openapi: 3.0.3
+info:
+  title: Library Management System API
+  description: |
+    A Domain-Driven Design example library management system API. This API provides 
+    endpoints for managing patron profiles, including their book holds and checkouts.
+    
+    The API follows HATEOAS principles and returns hypermedia-enriched responses with
+    links to related resources and available actions.
+  version: 0.0.1-SNAPSHOT
+  contact:
+    name: Library API Support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Patron Profiles
+    description: Operations related to patron profiles, holds, and checkouts
+  - name: Actuator
+    description: Spring Boot Actuator endpoints for monitoring and management
+
+paths:
+  /profiles/{patronId}:
+    get:
+      tags:
+        - Patron Profiles
+      summary: Get patron profile
+      description: |
+        Retrieves the profile resource for a specific patron. The response includes
+        HATEOAS links to the patron's holds and checkouts collections.
+      operationId: patronProfile
+      parameters:
+        - $ref: '#/components/parameters/patronId'
+      responses:
+        '200':
+          description: Patron profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResource'
+              example:
+                patronId: "550e8400-e29b-41d4-a716-446655440000"
+                _links:
+                  self:
+                    href: "/profiles/550e8400-e29b-41d4-a716-446655440000"
+                  holds:
+                    href: "/profiles/550e8400-e29b-41d4-a716-446655440000/holds/"
+                  checkouts:
+                    href: "/profiles/550e8400-e29b-41d4-a716-446655440000/checkouts/"
+
+  /profiles/{patronId}/holds/:
+    get:
+      tags:
+        - Patron Profiles
+      summary: Get all holds for a patron
+      description: |
+        Retrieves all current book holds for a specific patron. Each hold includes
+        the book ID and the date until which the hold is valid.
+      operationId: findHolds
+      parameters:
+        - $ref: '#/components/parameters/patronId'
+      responses:
+        '200':
+          description: List of holds retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldsCollection'
+              example:
+                _embedded:
+                  holdList:
+                    - bookId: "123e4567-e89b-12d3-a456-426614174000"
+                      till: "2024-12-31T23:59:59Z"
+                      _links:
+                        self:
+                          href: "/profiles/550e8400-e29b-41d4-a716-446655440000/holds/123e4567-e89b-12d3-a456-426614174000"
+                _links:
+                  self:
+                    href: "/profiles/550e8400-e29b-41d4-a716-446655440000/holds/"
+
+  /profiles/{patronId}/holds:
+    post:
+      tags:
+        - Patron Profiles
+      summary: Place a hold on a book
+      description: |
+        Places a hold on a book for a specific patron at a library branch.
+        The hold can optionally specify a number of days for the hold duration.
+      operationId: placeHold
+      parameters:
+        - $ref: '#/components/parameters/patronId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlaceHoldRequest'
+            example:
+              bookId: "123e4567-e89b-12d3-a456-426614174000"
+              libraryBranchId: "987fcdeb-51a2-3bc4-d567-890123456789"
+              numberOfDays: 7
+      responses:
+        '200':
+          description: Hold placed successfully
+        '500':
+          description: Internal server error - hold could not be placed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /profiles/{patronId}/holds/{bookId}:
+    get:
+      tags:
+        - Patron Profiles
+      summary: Get a specific hold
+      description: |
+        Retrieves details of a specific book hold for a patron. The response includes
+        HATEOAS links including an affordance to cancel the hold.
+      operationId: findHold
+      parameters:
+        - $ref: '#/components/parameters/patronId'
+        - $ref: '#/components/parameters/bookId'
+      responses:
+        '200':
+          description: Hold details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HoldResource'
+              example:
+                bookId: "123e4567-e89b-12d3-a456-426614174000"
+                till: "2024-12-31T23:59:59Z"
+                _links:
+                  self:
+                    href: "/profiles/550e8400-e29b-41d4-a716-446655440000/holds/123e4567-e89b-12d3-a456-426614174000"
+        '404':
+          description: Hold not found
+
+    delete:
+      tags:
+        - Patron Profiles
+      summary: Cancel a hold
+      description: |
+        Cancels an existing book hold for a patron. This operation removes the hold
+        and makes the book available for other patrons.
+      operationId: cancelHold
+      parameters:
+        - $ref: '#/components/parameters/patronId'
+        - $ref: '#/components/parameters/bookId'
+      responses:
+        '204':
+          description: Hold cancelled successfully
+        '404':
+          description: Hold not found
+        '500':
+          description: Internal server error - hold could not be cancelled
+
+  /profiles/{patronId}/checkouts/:
+    get:
+      tags:
+        - Patron Profiles
+      summary: Get all checkouts for a patron
+      description: |
+        Retrieves all current book checkouts for a specific patron. Each checkout
+        includes the book ID and the due date.
+      operationId: findCheckouts
+      parameters:
+        - $ref: '#/components/parameters/patronId'
+      responses:
+        '200':
+          description: List of checkouts retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutsCollection'
+              example:
+                _embedded:
+                  checkoutList:
+                    - bookId: "123e4567-e89b-12d3-a456-426614174000"
+                      till: "2024-12-31T23:59:59Z"
+                      _links:
+                        self:
+                          href: "/profiles/550e8400-e29b-41d4-a716-446655440000/checkouts/123e4567-e89b-12d3-a456-426614174000"
+                _links:
+                  self:
+                    href: "/profiles/550e8400-e29b-41d4-a716-446655440000/checkouts/"
+
+  /profiles/{patronId}/checkouts/{bookId}:
+    get:
+      tags:
+        - Patron Profiles
+      summary: Get a specific checkout
+      description: |
+        Retrieves details of a specific book checkout for a patron.
+      operationId: findCheckout
+      parameters:
+        - $ref: '#/components/parameters/patronId'
+        - $ref: '#/components/parameters/bookId'
+      responses:
+        '200':
+          description: Checkout details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResource'
+              example:
+                bookId: "123e4567-e89b-12d3-a456-426614174000"
+                till: "2024-12-31T23:59:59Z"
+                _links:
+                  self:
+                    href: "/profiles/550e8400-e29b-41d4-a716-446655440000/checkouts/123e4567-e89b-12d3-a456-426614174000"
+        '404':
+          description: Checkout not found
+
+  /actuator/health:
+    get:
+      tags:
+        - Actuator
+      summary: Health check endpoint
+      description: Returns the health status of the application
+      operationId: health
+      responses:
+        '200':
+          description: Application is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: "UP"
+
+  /actuator/info:
+    get:
+      tags:
+        - Actuator
+      summary: Application info endpoint
+      description: Returns information about the application
+      operationId: info
+      responses:
+        '200':
+          description: Application information retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+
+  /actuator/metrics:
+    get:
+      tags:
+        - Actuator
+      summary: Metrics endpoint
+      description: Returns available metrics names
+      operationId: metrics
+      responses:
+        '200':
+          description: Metrics list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+  /actuator/prometheus:
+    get:
+      tags:
+        - Actuator
+      summary: Prometheus metrics endpoint
+      description: Returns metrics in Prometheus format for scraping
+      operationId: prometheus
+      responses:
+        '200':
+          description: Prometheus metrics retrieved successfully
+          content:
+            text/plain:
+              schema:
+                type: string
+
+components:
+  parameters:
+    patronId:
+      name: patronId
+      in: path
+      required: true
+      description: Unique identifier of the patron (UUID format)
+      schema:
+        type: string
+        format: uuid
+      example: "550e8400-e29b-41d4-a716-446655440000"
+
+    bookId:
+      name: bookId
+      in: path
+      required: true
+      description: Unique identifier of the book (UUID format)
+      schema:
+        type: string
+        format: uuid
+      example: "123e4567-e89b-12d3-a456-426614174000"
+
+  schemas:
+    ProfileResource:
+      type: object
+      description: Patron profile resource with HATEOAS links
+      properties:
+        patronId:
+          type: string
+          format: uuid
+          description: Unique identifier of the patron
+        _links:
+          $ref: '#/components/schemas/ProfileLinks'
+      required:
+        - patronId
+        - _links
+
+    ProfileLinks:
+      type: object
+      description: HATEOAS links for patron profile
+      properties:
+        self:
+          $ref: '#/components/schemas/Link'
+        holds:
+          $ref: '#/components/schemas/Link'
+        checkouts:
+          $ref: '#/components/schemas/Link'
+
+    Hold:
+      type: object
+      description: A book hold placed by a patron
+      properties:
+        bookId:
+          type: string
+          format: uuid
+          description: Unique identifier of the held book
+        till:
+          type: string
+          format: date-time
+          description: Date and time until which the hold is valid
+      required:
+        - bookId
+        - till
+
+    HoldResource:
+      type: object
+      description: Hold resource with HATEOAS links
+      allOf:
+        - $ref: '#/components/schemas/Hold'
+        - type: object
+          properties:
+            _links:
+              type: object
+              properties:
+                self:
+                  $ref: '#/components/schemas/Link'
+
+    HoldsCollection:
+      type: object
+      description: Collection of holds with HATEOAS links
+      properties:
+        _embedded:
+          type: object
+          properties:
+            holdList:
+              type: array
+              items:
+                $ref: '#/components/schemas/HoldResource'
+        _links:
+          type: object
+          properties:
+            self:
+              $ref: '#/components/schemas/Link'
+
+    Checkout:
+      type: object
+      description: A book checkout by a patron
+      properties:
+        bookId:
+          type: string
+          format: uuid
+          description: Unique identifier of the checked out book
+        till:
+          type: string
+          format: date-time
+          description: Due date for returning the book
+      required:
+        - bookId
+        - till
+
+    CheckoutResource:
+      type: object
+      description: Checkout resource with HATEOAS links
+      allOf:
+        - $ref: '#/components/schemas/Checkout'
+        - type: object
+          properties:
+            _links:
+              type: object
+              properties:
+                self:
+                  $ref: '#/components/schemas/Link'
+
+    CheckoutsCollection:
+      type: object
+      description: Collection of checkouts with HATEOAS links
+      properties:
+        _embedded:
+          type: object
+          properties:
+            checkoutList:
+              type: array
+              items:
+                $ref: '#/components/schemas/CheckoutResource'
+        _links:
+          type: object
+          properties:
+            self:
+              $ref: '#/components/schemas/Link'
+
+    PlaceHoldRequest:
+      type: object
+      description: Request body for placing a hold on a book
+      properties:
+        bookId:
+          type: string
+          format: uuid
+          description: Unique identifier of the book to hold
+        libraryBranchId:
+          type: string
+          format: uuid
+          description: Unique identifier of the library branch where the book is located
+        numberOfDays:
+          type: integer
+          description: Optional number of days for the hold duration
+          minimum: 1
+          nullable: true
+      required:
+        - bookId
+        - libraryBranchId
+
+    Link:
+      type: object
+      description: HATEOAS link
+      properties:
+        href:
+          type: string
+          description: URL of the linked resource
+
+    Error:
+      type: object
+      description: Error response
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
+
+    HealthResponse:
+      type: object
+      description: Health check response
+      properties:
+        status:
+          type: string
+          enum:
+            - UP
+            - DOWN
+          description: Health status of the application
+
+    MetricsResponse:
+      type: object
+      description: Available metrics
+      properties:
+        names:
+          type: array
+          items:
+            type: string
+          description: List of available metric names
