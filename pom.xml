@@ -17,6 +17,8 @@
     <properties>
         <java.version>11</java.version>
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
+        <!-- Override Tomcat version to fix CVE-2024-50379 (TOCTOU Race Condition) -->
+        <tomcat.version>9.0.98</tomcat.version>
     </properties>
 
     <repositories>
