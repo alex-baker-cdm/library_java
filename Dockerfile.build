@@ -1,9 +1,9 @@
-FROM maven:3.6-jdk-11-slim as BUILD
+FROM maven:3.9-eclipse-temurin-21 as BUILD
 COPY . /src
 WORKDIR /src
 RUN mvn install -DskipTests
 
-FROM openjdk:11.0.1-jre-slim-stretch
+FROM eclipse-temurin:21-jre-jammy
 EXPOSE 8080
 WORKDIR /app
 ARG JAR=library-0.0.1-SNAPSHOT.jar

@@ -743,7 +743,7 @@ know or simply create a Pull Request.
 
 ### Requirements
 
-* Java 11
+* Java 21
 * Maven
 
 ### Quickstart
