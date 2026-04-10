@@ -25,6 +25,7 @@ class PatronCancelingHoldTest extends Specification {
             cancelHold.get().with {
                 assert it.libraryBranchId == forBook.getHoldPlacedAt().libraryBranchId
                 assert it.bookId == forBook.bookInformation.bookId.bookId
+                true
             }
 
     }

@@ -35,6 +35,7 @@ class PatronRequestingCloseEndedHoldTest extends Specification {
                 assert bookPlacedOnHold.holdFrom == from
                 assert bookPlacedOnHold.holdTill == from.plus(Duration.ofDays(3))
                 assert it.maximumNumberOhHoldsReached.isEmpty()
+                true
             }
         where:
             patron << [regularPatronWithPolicy(onlyResearcherPatronsCanPlaceOpenEndedHolds),

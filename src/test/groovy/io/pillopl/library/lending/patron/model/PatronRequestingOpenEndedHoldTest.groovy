@@ -35,6 +35,7 @@ class PatronRequestingOpenEndedHoldTest extends Specification {
                 assert bookPlacedOnHold.bookId == aBook.bookInformation.bookId.bookId
                 assert bookPlacedOnHold.holdFrom == from
                 assert bookPlacedOnHold.holdTill == null
+                true
             }
 
     }
@@ -55,6 +56,7 @@ class PatronRequestingOpenEndedHoldTest extends Specification {
                 assert it.libraryBranchId == aBook.libraryBranch.libraryBranchId
                 assert it.patronId == patronId.patronId
                 assert it.bookId == aBook.bookInformation.bookId.bookId
+                true
             }
 
     }

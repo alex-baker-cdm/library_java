@@ -23,6 +23,7 @@ class PatronRequestingLastPossibleHoldTest extends Specification {
                 assert it.maximumNumberOhHoldsReached.isDefined()
                 MaximumNumberOhHoldsReached maximumNumberOhHoldsReached = it.maximumNumberOhHoldsReached.get()
                 assert maximumNumberOhHoldsReached.numberOfHolds == 5
+                true
             }
 
     }
