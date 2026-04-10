@@ -1,0 +1,3 @@
+# Pre-existing architectural violations detected after ArchUnit upgrade from 0.9.3 to 1.4.1
+# These violations exist in the original codebase - method annotations are now detected as dependencies
+.*is annotated with.*org\.springframework\.context\.event\.EventListener.*

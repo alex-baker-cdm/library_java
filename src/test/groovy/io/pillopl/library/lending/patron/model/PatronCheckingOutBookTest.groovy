@@ -57,7 +57,7 @@ class PatronCheckingOutBookTest extends Specification {
                 assert it.libraryBranchId == bookOnHold.holdPlacedAt.libraryBranchId
                 assert it.bookId == bookOnHold.bookInformation.bookId.bookId
                 assert it.till == checkoutTime.plus(Duration.ofDays(checkoutDays))
-
+                true
             }
         where:
             checkoutDays << (1 .. MAX_CHECKOUT_DURATION)
