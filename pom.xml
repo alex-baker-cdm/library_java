@@ -16,6 +16,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <tomcat.version>9.0.113</tomcat.version>
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
     </properties>
 
