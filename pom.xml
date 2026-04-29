@@ -16,6 +16,7 @@
 
     <properties>
         <java.version>11</java.version>
+        <spring-framework.version>5.2.20.RELEASE</spring-framework.version>
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
     </properties>
 
