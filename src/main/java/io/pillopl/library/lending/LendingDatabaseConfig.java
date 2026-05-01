@@ -16,7 +16,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.springframework.data.jdbc.repository.config.AbstractJdbcConfiguration;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcOperations;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -31,7 +30,7 @@ import static io.pillopl.library.lending.patron.model.PatronType.Regular;
 
 @Configuration
 @Slf4j
-class LendingDatabaseConfig extends AbstractJdbcConfiguration {
+class LendingDatabaseConfig {
 
     @Bean
     JdbcTemplate jdbcTemplate() {
