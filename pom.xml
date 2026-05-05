@@ -17,6 +17,7 @@
     <properties>
         <java.version>11</java.version>
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
+        <logback.version>1.2.13</logback.version>
     </properties>
 
     <repositories>
@@ -47,7 +48,7 @@
         <pluginRepository>
             <id>repository.spring.release</id>
             <name>Spring GA Repository</name>
-            <url>https://repo.spring.io/plugins-release/</url>
+            <url>https://repo.spring.io/milestone</url>
         </pluginRepository>
     </pluginRepositories>
 
