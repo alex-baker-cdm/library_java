@@ -3,3 +3,14 @@ management:
     web:
       exposure:
         include: info, health, metrics, prometheus
+
+spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          # Set this to the issuer URI of your OIDC provider, e.g.:
+          #   https://your-domain.auth0.com/
+          #   https://keycloak.example.com/realms/your-realm
+          #   https://accounts.google.com
+          issuer-uri: https://your-issuer.example.com/
