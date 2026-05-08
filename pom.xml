@@ -19,6 +19,17 @@
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- Fix jackson-databind deserialization CVEs (2.9.9.3 -> 2.9.10.8) -->
+            <dependency>
+                <groupId>com.fasterxml.jackson.core</groupId>
+                <artifactId>jackson-databind</artifactId>
+                <version>2.9.10.8</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <repositories>
         <repository>
             <id>central</id>
