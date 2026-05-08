@@ -19,6 +19,29 @@
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- CVE-2023-20883: Denial of Service (DoS) in spring-boot-autoconfigure -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-autoconfigure</artifactId>
+                <version>2.5.15</version>
+            </dependency>
+            <!-- CVE-2023-20873: Access Restriction Bypass in spring-boot-actuator-autoconfigure -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+                <version>2.5.15</version>
+            </dependency>
+            <!-- Pin spring-boot-actuator to same version for consistency -->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-actuator</artifactId>
+                <version>2.5.15</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <repositories>
         <repository>
             <id>central</id>
