@@ -130,6 +130,17 @@
 
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- CVE-2023-34036: HTTP Header Injection in spring-hateoas -->
+            <dependency>
+                <groupId>org.springframework.hateoas</groupId>
+                <artifactId>spring-hateoas</artifactId>
+                <version>1.5.5</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
         <plugins>
             <plugin>
