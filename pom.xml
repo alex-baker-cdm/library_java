@@ -130,6 +130,17 @@
 
     </dependencies>
 
+    <dependencyManagement>
+        <dependencies>
+            <!-- CVE-2024-22243, CVE-2024-22259: Open Redirect in spring-web -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-web</artifactId>
+                <version>5.3.33</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <build>
         <plugins>
             <plugin>
