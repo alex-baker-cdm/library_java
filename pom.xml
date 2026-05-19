@@ -17,6 +17,10 @@
     <properties>
         <java.version>11</java.version>
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
+        <!-- Override Spring Boot 2.2.0.M6 managed Tomcat version (9.0.24) to fix
+             CVE-2024-56337 (TOCTOU race in tomcat-embed-core; SNYK-JAVA-ORGAPACHETOMCATEMBED-8547999).
+             First fixed version per Snyk advisory: 9.0.98. -->
+        <tomcat.version>9.0.98</tomcat.version>
     </properties>
 
     <repositories>
