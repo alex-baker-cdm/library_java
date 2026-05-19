@@ -17,6 +17,8 @@
     <properties>
         <java.version>11</java.version>
         <spring-hateoas.version>1.0.0.BUILD-SNAPSHOT</spring-hateoas.version>
+        <!-- CVE-2024-52316 (SNYK-JAVA-ORGAPACHETOMCATEMBED-8383920): override transitive tomcat-embed-core -->
+        <tomcat.version>9.0.96</tomcat.version>
     </properties>
 
     <repositories>
