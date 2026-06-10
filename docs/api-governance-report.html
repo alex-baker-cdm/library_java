@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Governance Report — library_java</title>
+    <style>
+        :root {
+            --pass: #16a34a;
+            --fail: #dc2626;
+            --warn: #d97706;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --muted: #64748b;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 2rem;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
+        .subtitle { color: var(--muted); margin-bottom: 2rem; font-size: 0.95rem; }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .summary-card .number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .summary-card .label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .number.fail { color: var(--fail); }
+        .number.pass { color: var(--pass); }
+        .number.warn { color: var(--warn); }
+
+        .rules-overview {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .rules-overview h2 { font-size: 1.25rem; margin-bottom: 1rem; }
+        .rule-bar {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .rule-bar:last-child { border-bottom: none; }
+        .rule-bar:hover { background: #f1f5f9; margin: 0 -1.5rem; padding: 0.75rem 1.5rem; }
+        .rule-badge {
+            display: inline-block;
+            width: 70px;
+            text-align: center;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        .badge-fail { background: #fef2f2; color: var(--fail); border: 1px solid #fecaca; }
+        .badge-pass { background: #f0fdf4; color: var(--pass); border: 1px solid #bbf7d0; }
+        .badge-warn { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
+        .rule-name { flex: 1; font-weight: 500; }
+        .rule-count { color: var(--muted); font-size: 0.85rem; margin-left: 1rem; }
+        .chevron { color: var(--muted); transition: transform 0.2s; }
+        .chevron.open { transform: rotate(90deg); }
+
+        .api-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+        .api-header {
+            padding: 1.25rem 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+        .api-header:hover { background: #f1f5f9; }
+        .api-title {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .method-badge {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.7rem;
+            font-weight: 700;
+            margin-right: 0.5rem;
+            text-transform: uppercase;
+        }
+        .method-get { background: #dbeafe; color: #1d4ed8; }
+        .method-post { background: #dcfce7; color: #166534; }
+        .method-delete { background: #fef2f2; color: #991b1b; }
+        .api-stats {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+        .stat-pill {
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 1rem;
+        }
+        .pill-fail { background: #fef2f2; color: var(--fail); }
+        .pill-pass { background: #f0fdf4; color: var(--pass); }
+
+        .api-details {
+            display: none;
+            padding: 1.5rem;
+        }
+        .api-details.open { display: block; }
+        .detail-rule {
+            display: flex;
+            align-items: flex-start;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .detail-rule:last-child { border-bottom: none; }
+        .detail-status {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+            font-size: 0.75rem;
+        }
+        .status-fail { background: #fef2f2; color: var(--fail); }
+        .status-pass { background: #f0fdf4; color: var(--pass); }
+        .status-warn { background: #fffbeb; color: var(--warn); }
+        .detail-content { flex: 1; }
+        .detail-title { font-weight: 600; font-size: 0.9rem; }
+        .detail-desc { color: var(--muted); font-size: 0.85rem; margin-top: 0.25rem; }
+
+        .filter-bar {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 0.4rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 2rem;
+            background: var(--card);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.15s;
+        }
+        .filter-btn:hover { border-color: #94a3b8; }
+        .filter-btn.active { background: var(--text); color: white; border-color: var(--text); }
+
+        .hidden { display: none !important; }
+        .section-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; margin-top: 2rem; }
+
+        .actuator-note {
+            background: #f1f5f9;
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            color: var(--muted);
+        }
+        .actuator-note strong { color: var(--text); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Governance Report</h1>
+        <p class="subtitle">Repository: <strong>alex-baker-cdm/library_java</strong> &mdash; Generated: <span id="gen-date"></span></p>
+
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="number">7</div>
+                <div class="label">API Endpoints</div>
+            </div>
+            <div class="summary-card">
+                <div class="number fail">9</div>
+                <div class="label">Rules Violated</div>
+            </div>
+            <div class="summary-card">
+                <div class="number pass">1</div>
+                <div class="label">Rules Passing</div>
+            </div>
+            <div class="summary-card">
+                <div class="number warn">63</div>
+                <div class="label">Total Violations</div>
+            </div>
+        </div>
+
+        <div class="rules-overview">
+            <h2>Rule Compliance Summary</h2>
+            <div class="rule-bar" onclick="filterByRule('rule1')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">1. OpenAPI Specification Exists &amp; Is Valid</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule2')">
+                <span class="rule-badge badge-pass">PASS</span>
+                <span class="rule-name">2. Naming &amp; Format Conventions</span>
+                <span class="rule-count">0 violations</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule3')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">3. Authentication Defined in the Spec</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule4')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">4. Versioning Rules</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule5')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">5. Standard Error Format in the Spec</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule6')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">6. Documentation Completeness</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule7')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">7. Security &amp; Data Controls</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule8')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">8. Test Coverage Requirements</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule9')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">9. Linting &amp; Style Compliance</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+            <div class="rule-bar" onclick="filterByRule('rule10')">
+                <span class="rule-badge badge-fail">FAIL</span>
+                <span class="rule-name">10. Monitoring &amp; Logging Fields Present</span>
+                <span class="rule-count">7 endpoints affected</span>
+                <span class="chevron">&#9654;</span>
+            </div>
+        </div>
+
+        <div class="actuator-note">
+            <strong>Note:</strong> This repo also exposes Spring Boot Actuator endpoints (<code>/actuator/health</code>, <code>/actuator/info</code>, <code>/actuator/metrics</code>, <code>/actuator/prometheus</code>) configured in <code>application.yml</code>. These are framework-provided management endpoints and are evaluated separately from the application's business APIs above.
+        </div>
+
+        <h2 class="section-title">Endpoint Detail</h2>
+
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterAll(this)">All</button>
+            <button class="filter-btn" onclick="filterStatus('fail', this)">Failing</button>
+            <button class="filter-btn" onclick="filterStatus('pass', this)">Passing</button>
+            <button class="filter-btn" onclick="filterMethod('GET', this)">GET</button>
+            <button class="filter-btn" onclick="filterMethod('POST', this)">POST</button>
+            <button class="filter-btn" onclick="filterMethod('DELETE', this)">DELETE</button>
+        </div>
+
+        <div id="api-list"></div>
+    </div>
+
+    <script>
+        document.getElementById('gen-date').textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        const apis = [
+            {
+                method: 'GET',
+                path: '/profiles/{patronId}',
+                description: 'Retrieve patron profile with HATEOAS links to holds and checkouts.',
+                file: 'PatronProfileController.java:55-58',
+                rules: [
+                    { id: 'rule1', name: '1. OpenAPI Spec', status: 'fail', detail: 'No OpenAPI/Swagger specification file exists in the repository. All paths, schemas, and responses are undocumented.' },
+                    { id: 'rule2', name: '2. Naming Conventions', status: 'pass', detail: 'Path uses plural noun "profiles" with camelCase path variable. Field names (patronId) follow camelCase convention.' },
+                    { id: 'rule3', name: '3. Authentication', status: 'fail', detail: 'No Spring Security dependency or security configuration. Endpoint is publicly accessible with no authentication scheme.' },
+                    { id: 'rule4', name: '4. Versioning', status: 'fail', detail: 'No version prefix in path. Expected /v1/profiles/{patronId}. No deprecation or sunset metadata.' },
+                    { id: 'rule5', name: '5. Error Format', status: 'fail', detail: 'No standard error response schema defined. Returns bare HTTP status codes without structured error bodies.' },
+                    { id: 'rule6', name: '6. Documentation', status: 'fail', detail: 'No API catalog entry exists. Missing: owner/team, description, contact link, lifecycle status.' },
+                    { id: 'rule7', name: '7. Security & Data', status: 'fail', detail: 'No servers.url with HTTPS defined (no OpenAPI spec). No explicit data classification for returned fields.' },
+                    { id: 'rule8', name: '8. Test Coverage', status: 'fail', detail: 'No API contract tests validating requests/responses against a specification. JaCoCo is configured but no minimum threshold enforced in CI.' },
+                    { id: 'rule9', name: '9. Linting & Style', status: 'fail', detail: 'No OpenAPI linter (Spectral) configured. No static analysis tools (Checkstyle, SpotBugs, PMD) in build pipeline. CI does not fail on style errors.' },
+                    { id: 'rule10', name: '10. Monitoring & Logging', status: 'fail', detail: 'Micrometer @Timed annotation present (good). However, no request_id or correlation_id logging middleware. No standard logging keys emitted per request.' }
+                ]
+            },
+            {
+                method: 'GET',
+                path: '/profiles/{patronId}/holds/',
+                description: 'List all current holds for a patron. Returns HATEOAS collection with self links.',
+                file: 'PatronProfileController.java:60-69',
+                rules: [
+                    { id: 'rule1', name: '1. OpenAPI Spec', status: 'fail', detail: 'No OpenAPI/Swagger specification file exists in the repository.' },
+                    { id: 'rule2', name: '2. Naming Conventions', status: 'pass', detail: 'Path uses plural nouns "profiles" and "holds". camelCase path variable. Trailing slash is non-standard but not a naming violation.' },
+                    { id: 'rule3', name: '3. Authentication', status: 'fail', detail: 'No security scheme defined. Any client can list any patron\'s holds without authentication.' },
+                    { id: 'rule4', name: '4. Versioning', status: 'fail', detail: 'No version prefix. Expected /v1/profiles/{patronId}/holds/.' },
+                    { id: 'rule5', name: '5. Error Format', status: 'fail', detail: 'No error responses documented. 4xx/5xx schemas not defined.' },
+                    { id: 'rule6', name: '6. Documentation', status: 'fail', detail: 'No API catalog entry. Missing owner, description, contact, lifecycle status.' },
+                    { id: 'rule7', name: '7. Security & Data', status: 'fail', detail: 'No HTTPS enforcement via OpenAPI servers block. Hold data (bookId, expiry) exposed without access control.' },
+                    { id: 'rule8', name: '8. Test Coverage', status: 'fail', detail: 'No contract tests against a spec. Integration tests exist for database layer but not for HTTP contract validation.' },
+                    { id: 'rule9', name: '9. Linting & Style', status: 'fail', detail: 'No linter configured for API spec or codebase style enforcement in CI.' },
+                    { id: 'rule10', name: '10. Monitoring & Logging', status: 'fail', detail: '@Timed metrics present. Missing: request_id propagation, structured logging middleware.' }
+                ]
+            },
+            {
+                method: 'GET',
+                path: '/profiles/{patronId}/holds/{bookId}',
+                description: 'Retrieve a specific hold by patron and book ID. Returns 404 if not found.',
+                file: 'PatronProfileController.java:72-78',
+                rules: [
+                    { id: 'rule1', name: '1. OpenAPI Spec', status: 'fail', detail: 'No OpenAPI/Swagger specification file exists in the repository.' },
+                    { id: 'rule2', name: '2. Naming Conventions', status: 'pass', detail: 'Plural nouns, camelCase variables. Path hierarchy is logical and RESTful.' },
+                    { id: 'rule3', name: '3. Authentication', status: 'fail', detail: 'No authentication required. Patron hold details accessible to anyone.' },
+                    { id: 'rule4', name: '4. Versioning', status: 'fail', detail: 'No API version in path.' },
+                    { id: 'rule5', name: '5. Error Format', status: 'fail', detail: '404 returned without standard error body. No documented error schema.' },
+                    { id: 'rule6', name: '6. Documentation', status: 'fail', detail: 'No catalog entry exists for this endpoint.' },
+                    { id: 'rule7', name: '7. Security & Data', status: 'fail', detail: 'No HTTPS enforcement. No data classification.' },
+                    { id: 'rule8', name: '8. Test Coverage', status: 'fail', detail: 'No API contract tests. No minimum coverage threshold enforced.' },
+                    { id: 'rule9', name: '9. Linting & Style', status: 'fail', detail: 'No static analysis or linting in pipeline.' },
+                    { id: 'rule10', name: '10. Monitoring & Logging', status: 'fail', detail: '@Timed present. No request_id or structured logging.' }
+                ]
+            },
+            {
+                method: 'GET',
+                path: '/profiles/{patronId}/checkouts/',
+                description: 'List all current checkouts for a patron. Returns HATEOAS collection.',
+                file: 'PatronProfileController.java:81-90',
+                rules: [
+                    { id: 'rule1', name: '1. OpenAPI Spec', status: 'fail', detail: 'No OpenAPI/Swagger specification file exists in the repository.' },
+                    { id: 'rule2', name: '2. Naming Conventions', status: 'pass', detail: 'Path uses plural nouns. camelCase variables. RESTful hierarchy.' },
+                    { id: 'rule3', name: '3. Authentication', status: 'fail', detail: 'No authentication. Checkout history exposed publicly.' },
+                    { id: 'rule4', name: '4. Versioning', status: 'fail', detail: 'No version prefix in base path.' },
+                    { id: 'rule5', name: '5. Error Format', status: 'fail', detail: 'No error response schemas defined.' },
+                    { id: 'rule6', name: '6. Documentation', status: 'fail', detail: 'No API catalog entry.' },
+                    { id: 'rule7', name: '7. Security & Data', status: 'fail', detail: 'No HTTPS enforcement. Patron checkout data unprotected.' },
+                    { id: 'rule8', name: '8. Test Coverage', status: 'fail', detail: 'No contract tests against specification.' },
+                    { id: 'rule9', name: '9. Linting & Style', status: 'fail', detail: 'No linting or static analysis configured.' },
+                    { id: 'rule10', name: '10. Monitoring & Logging', status: 'fail', detail: '@Timed present. No structured logging keys.' }
+                ]
+            },
+            {
+                method: 'GET',
+                path: '/profiles/{patronId}/checkouts/{bookId}',
+                description: 'Retrieve a specific checkout. Returns 404 if not found.',
+                file: 'PatronProfileController.java:92-98',
+                rules: [
+                    { id: 'rule1', name: '1. OpenAPI Spec', status: 'fail', detail: 'No OpenAPI/Swagger specification file exists in the repository.' },
+                    { id: 'rule2', name: '2. Naming Conventions', status: 'pass', detail: 'Correct plural nouns and camelCase. RESTful resource path.' },
+                    { id: 'rule3', name: '3. Authentication', status: 'fail', detail: 'No security scheme. Checkout details publicly accessible.' },
+                    { id: 'rule4', name: '4. Versioning', status: 'fail', detail: 'No version in URL path.' },
+                    { id: 'rule5', name: '5. Error Format', status: 'fail', detail: '404 returned as bare status. No standard error body.' },
+                    { id: 'rule6', name: '6. Documentation', status: 'fail', detail: 'No catalog or lifecycle documentation.' },
+                    { id: 'rule7', name: '7. Security & Data', status: 'fail', detail: 'No HTTPS-only enforcement.' },
+                    { id: 'rule8', name: '8. Test Coverage', status: 'fail', detail: 'No contract tests. No enforced coverage minimum.' },
+                    { id: 'rule9', name: '9. Linting & Style', status: 'fail', detail: 'No analysis tools in build.' },
+                    { id: 'rule10', name: '10. Monitoring & Logging', status: 'fail', detail: '@Timed annotation provides latency metrics. Missing request correlation IDs.' }
+                ]
+            },
+            {
+                method: 'POST',
+                path: '/profiles/{patronId}/holds',
+                description: 'Place a hold on a book. Accepts PlaceHoldRequest body with bookId, libraryBranchId, numberOfDays.',
+                file: 'PatronProfileController.java:100-114',
+                rules: [
+                    { id: 'rule1', name: '1. OpenAPI Spec', status: 'fail', detail: 'No OpenAPI spec. Request body schema (PlaceHoldRequest) undocumented externally.' },
+                    { id: 'rule2', name: '2. Naming Conventions', status: 'pass', detail: 'Path correct. Request body fields (bookId, libraryBranchId, numberOfDays) use camelCase.' },
+                    { id: 'rule3', name: '3. Authentication', status: 'fail', detail: 'No authentication. Any client can place holds on behalf of any patron.' },
+                    { id: 'rule4', name: '4. Versioning', status: 'fail', detail: 'No version prefix.' },
+                    { id: 'rule5', name: '5. Error Format', status: 'fail', detail: 'Returns 500 on failure with no error body. No standard error schema for validation failures.' },
+                    { id: 'rule6', name: '6. Documentation', status: 'fail', detail: 'No API catalog entry.' },
+                    { id: 'rule7', name: '7. Security & Data', status: 'fail', detail: 'No HTTPS enforcement. Write operation completely unprotected.' },
+                    { id: 'rule8', name: '8. Test Coverage', status: 'fail', detail: 'Domain logic well-tested via Spock specs. No HTTP-layer contract tests.' },
+                    { id: 'rule9', name: '9. Linting & Style', status: 'fail', detail: 'No OpenAPI linter or code style enforcement.' },
+                    { id: 'rule10', name: '10. Monitoring & Logging', status: 'fail', detail: '@Timed present. No audit trail or request_id for write operations.' }
+                ]
+            },
+            {
+                method: 'DELETE',
+                path: '/profiles/{patronId}/holds/{bookId}',
+                description: 'Cancel an existing hold. Returns 204 on success, 404 if hold not found.',
+                file: 'PatronProfileController.java:116-123',
+                rules: [
+                    { id: 'rule1', name: '1. OpenAPI Spec', status: 'fail', detail: 'No OpenAPI spec. DELETE semantics and responses undocumented.' },
+                    { id: 'rule2', name: '2. Naming Conventions', status: 'pass', detail: 'RESTful DELETE on resource path. Correct naming conventions.' },
+                    { id: 'rule3', name: '3. Authentication', status: 'fail', detail: 'No authentication. Any client can cancel any patron\'s holds.' },
+                    { id: 'rule4', name: '4. Versioning', status: 'fail', detail: 'No version prefix in path.' },
+                    { id: 'rule5', name: '5. Error Format', status: 'fail', detail: '404 and 500 returned without standard error body. IllegalArgumentException mapped to 404 without structured response.' },
+                    { id: 'rule6', name: '6. Documentation', status: 'fail', detail: 'No catalog documentation.' },
+                    { id: 'rule7', name: '7. Security & Data', status: 'fail', detail: 'Destructive operation with no access control or HTTPS enforcement.' },
+                    { id: 'rule8', name: '8. Test Coverage', status: 'fail', detail: 'No contract tests at HTTP layer.' },
+                    { id: 'rule9', name: '9. Linting & Style', status: 'fail', detail: 'No linting or static analysis.' },
+                    { id: 'rule10', name: '10. Monitoring & Logging', status: 'fail', detail: '@Timed present. No audit logging for destructive operations. No request_id.' }
+                ]
+            }
+        ];
+
+        function renderApis(filter) {
+            const container = document.getElementById('api-list');
+            container.innerHTML = '';
+
+            let filtered = apis;
+            if (filter && filter.type === 'status') {
+                filtered = apis.filter(api => {
+                    const hasFail = api.rules.some(r => r.status === 'fail');
+                    return filter.value === 'fail' ? hasFail : !hasFail;
+                });
+            } else if (filter && filter.type === 'method') {
+                filtered = apis.filter(api => api.method === filter.value);
+            } else if (filter && filter.type === 'rule') {
+                filtered = apis.filter(api => api.rules.some(r => r.id === filter.value && r.status === 'fail'));
+            }
+
+            filtered.forEach((api, idx) => {
+                const failCount = api.rules.filter(r => r.status === 'fail').length;
+                const passCount = api.rules.filter(r => r.status === 'pass').length;
+                const methodClass = `method-${api.method.toLowerCase()}`;
+
+                const section = document.createElement('div');
+                section.className = 'api-section';
+                section.setAttribute('data-method', api.method);
+                section.innerHTML = `
+                    <div class="api-header" onclick="toggleDetails(this)">
+                        <div>
+                            <span class="method-badge ${methodClass}">${api.method}</span>
+                            <span class="api-title">${api.path}</span>
+                        </div>
+                        <div class="api-stats">
+                            <span class="stat-pill pill-fail">${failCount} violations</span>
+                            <span class="stat-pill pill-pass">${passCount} passing</span>
+                            <span class="chevron">&#9654;</span>
+                        </div>
+                    </div>
+                    <div class="api-details">
+                        <p style="color: var(--muted); margin-bottom: 0.75rem; font-size: 0.9rem;">${api.description}</p>
+                        <p style="color: var(--muted); margin-bottom: 1rem; font-size: 0.8rem;">Source: <code>${api.file}</code></p>
+                        ${api.rules.map(rule => `
+                            <div class="detail-rule" data-rule="${rule.id}">
+                                <div class="detail-status status-${rule.status}">
+                                    ${rule.status === 'pass' ? '&#10003;' : '&#10007;'}
+                                </div>
+                                <div class="detail-content">
+                                    <div class="detail-title">${rule.name}</div>
+                                    <div class="detail-desc">${rule.detail}</div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(section);
+            });
+        }
+
+        function toggleDetails(header) {
+            const details = header.nextElementSibling;
+            const chevron = header.querySelector('.chevron');
+            details.classList.toggle('open');
+            chevron.classList.toggle('open');
+        }
+
+        function filterAll(btn) {
+            setActiveFilter(btn);
+            renderApis(null);
+        }
+
+        function filterStatus(status, btn) {
+            setActiveFilter(btn);
+            renderApis({ type: 'status', value: status });
+        }
+
+        function filterMethod(method, btn) {
+            setActiveFilter(btn);
+            renderApis({ type: 'method', value: method });
+        }
+
+        function filterByRule(ruleId) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            renderApis({ type: 'rule', value: ruleId });
+        }
+
+        function setActiveFilter(btn) {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        renderApis(null);
+    </script>
+</body>
+</html>
